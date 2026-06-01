@@ -5,6 +5,9 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { MembersModule } from './members/members.module';
+import { MembershipPackagesModule } from './membership-packages/membership-packages.module';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
@@ -14,6 +17,12 @@ import { ConfigModule } from '@nestjs/config';
 
     AuthModule,
     UsersModule,
+    MembersModule,
+    MembershipPackagesModule,
+
+    MulterModule.register({
+      dest: './uploads',
+    }),
 
     TypeOrmModule.forRoot({
       type: 'postgres',
