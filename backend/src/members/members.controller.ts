@@ -3,10 +3,12 @@ import { MembersService } from './members.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { Get, Param, UseInterceptors, UploadedFile } from '@nestjs/common';
-import { Delete } from '@nestjs/common';
+import { Delete, Req } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from 'src/common/enums/role.enum';
 
 @Controller('members')
 export class MembersController {
@@ -57,5 +59,28 @@ export class MembersController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.membersService.findOne(Number(id));
+  }
+
+  @Get('my-closing')
+  @Roles(Role.MARKETING)
+  getMyClosing(@Req() req) {
+    return this.membersService.getMyClosing(req.user.id);
+  }
+
+  @Get('renewal-reminder')
+  @Roles(Role.ADMIN, Role.MARKETING)
+  getRenewalReminder() {
+    return this.membersService.getRenewalReminder();
+  }
+
+  @Get('marketing-stats')
+  @Roles(Role.ADMIN, Role.MARKETING)
+  getMarketingStats(@Req() req) {
+    const user = req.user;
+
+    // kalau marketing → filter sendiri
+    const marketingId = user.role === Role.MARKETING ? user.id : undefined;
+
+    return this.membersService.getMarketingStats(marketingId);
   }
 }

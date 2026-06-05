@@ -49,4 +49,83 @@ export class MembersService {
       where: { id },
     });
   }
+
+  async getMyClosing(marketingId: number) {
+    return this.memberRepository.find({
+      where: {
+        marketing: {
+          id: marketingId,
+        },
+      },
+      relations: {
+        marketing: true,
+      },
+    });
+  }
+
+  async getRenewalReminder(marketingId?: number) {
+    const today = new Date();
+    const next7Days = new Date();
+    next7Days.setDate(today.getDate() + 7);
+
+    const query = this.memberRepository
+      .createQueryBuilder('member')
+      .leftJoinAndSelect('member.marketing', 'marketing')
+      .where('member.expiredDate BETWEEN :today AND :next7Days', {
+        today,
+        next7Days,
+      });
+
+    if (marketingId) {
+      query.andWhere('member.marketingId = :marketingId', { marketingId });
+    }
+
+    return query.getMany();
+  }
+
+  async getMarketingStats(marketingId?: number) {
+    const today = new Date();
+
+    const query = this.memberRepository.createQueryBuilder('member');
+
+    // optional filter (marketing scope)
+    if (marketingId) {
+      query.where('member.marketingId = :marketingId', { marketingId });
+    }
+
+    // total closing
+    const totalClosing = await query.getCount();
+
+    // active member
+    const activeMemberQuery = this.memberRepository
+      .createQueryBuilder('member')
+      .where('member.expiredDate >= :today', { today });
+
+    if (marketingId) {
+      activeMemberQuery.andWhere('member.marketingId = :marketingId', {
+        marketingId,
+      });
+    }
+
+    const activeMember = await activeMemberQuery.getCount();
+
+    // expired member
+    const expiredMemberQuery = this.memberRepository
+      .createQueryBuilder('member')
+      .where('member.expiredDate < :today', { today });
+
+    if (marketingId) {
+      expiredMemberQuery.andWhere('member.marketingId = :marketingId', {
+        marketingId,
+      });
+    }
+
+    const expiredMember = await expiredMemberQuery.getCount();
+
+    return {
+      totalClosing,
+      activeMember,
+      expiredMember,
+    };
+  }
 }
