@@ -6,9 +6,11 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { MembershipPackage } from '../../membership-packages/entities/membership-package.entity';
 import { User } from '../../users/entities/user.entity';
+import { PaymentHistory } from '../../payments/entities/payment-history.entity';
 
 @Entity('members')
 export class Member {
@@ -68,4 +70,13 @@ export class Member {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => PaymentHistory, (payment) => payment.member)
+  payments: PaymentHistory[];
+
+  @Column({ type: 'date', nullable: true })
+  startDate: Date;
+
+  @Column({ type: 'date', nullable: true })
+  endDate: Date;
 }

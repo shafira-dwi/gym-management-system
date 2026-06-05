@@ -33,6 +33,7 @@ import { MulterModule } from '@nestjs/platform-express';
       database: process.env.DB_NAME,
       autoLoadEntities: true,
       synchronize: true,
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
     }),
   ],
   controllers: [AppController],
